@@ -15,7 +15,7 @@ const MainPage = () => {
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
-        const response = await fetch("http://api.jsonserve.com/Uw5CrX");
+        const response = await fetch("https://api.jsonserve.com/Uw5CrX");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
