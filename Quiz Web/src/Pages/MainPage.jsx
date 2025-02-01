@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "../Styles/MainPage.module.css";
 import LandingPage from "./LandingPage";
 import CountDown from "./CountDown";
@@ -31,7 +31,6 @@ const MainPage = () => {
     return ((currentQuestion + 1) / quizData.questions.length) * 100;
   };
 
-  // Fetch quiz data on component mount
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -54,7 +53,6 @@ const MainPage = () => {
     fetchQuizData();
   }, []);
 
-  // Countdown timer for the quiz
   useEffect(() => {
     if (gameState === "playing" && timeLeft > 0) {
       const timer = setInterval(() => {
@@ -66,10 +64,9 @@ const MainPage = () => {
           return prev - 1;
         });
       }, 1000);
-
       return () => clearInterval(timer);
     }
-  }, [gameState, timeLeft]);
+  }, [gameState]);
 
   // Handle answer selection
   const handleAnswerSelect = (questionIndex, optionId) => {
@@ -81,11 +78,9 @@ const MainPage = () => {
       (opt) => opt.id === optionId
     );
     const isCorrect = selectedOption?.is_correct;
-
-    const updatedAnswers = [...answers];
-    updatedAnswers[questionIndex] = optionId;
-    setAnswers(updatedAnswers);
-
+    const newAnswers = [...answers];
+    newAnswers[questionIndex] = optionId;
+    setAnswers(newAnswers);
     if (isCorrect) {
       const winAudio = new Audio("./Win.mp3");
       winAudio.play();
@@ -116,41 +111,40 @@ const MainPage = () => {
     if (currentQuestion < quizData.questions.length - 1) {
       setIsAnimating(true);
       await new Promise((resolve) => setTimeout(resolve, 300));
-      setCurrentQuestion((prev) => prev + 1);
-      setSelectedAnswer(answers[currentQuestion + 1] || null);
+      setCurrentQuestion(currentQuestion + 1);
+      const nextAnswer = answers[currentQuestion + 1];
+      setSelectedAnswer(nextAnswer !== null ? nextAnswer : null);
       setIsAnimating(false);
     } else {
       setGameState("finished");
       setPageState("results");
     }
   };
-
   // Navigate to the previous question
   const handlePrevious = async () => {
     setShowCorrectOption(false);
     if (currentQuestion > 0) {
       setIsAnimating(true);
       await new Promise((resolve) => setTimeout(resolve, 300));
-      setCurrentQuestion((prev) => prev - 1);
-      setSelectedAnswer(answers[currentQuestion - 1] || null);
+      setCurrentQuestion(currentQuestion - 1);
+      const previousAnswer = answers[currentQuestion - 1];
+      setSelectedAnswer(previousAnswer !== null ? previousAnswer : null);
       setIsAnimating(false);
     }
   };
 
   // Calculate total score
   const calculateScore = () => {
-    return answers.reduce((score, answerId, index) => {
+    let score = 0;
+    answers.forEach((answerId, index) => {
       const question = quizData.questions[index];
       const isCorrect = question.options.find(
         (opt) => opt.id === answerId
       )?.is_correct;
-      if (isCorrect) {
-        return score + parseFloat(quizData.correct_answer_marks);
-      } else if (answerId !== null) {
-        return score - parseFloat(quizData.negative_marks);
-      }
-      return score;
-    }, 0);
+      if (isCorrect) score += parseFloat(quizData.correct_answer_marks);
+      else if (answerId !== null) score -= parseFloat(quizData.negative_marks);
+    });
+    return score;
   };
 
   // Format time as mm:ss
@@ -161,21 +155,34 @@ const MainPage = () => {
   };
 
   // Render components based on the current state
-  if (loading) return <Loading />;
-  if (pageState === "landing")
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (pageState === "landing") {
     return (
       <LandingPage setPageState={setPageState} setGameState={setGameState} />
     );
-  if (error) return <Error />;
-  if (gameState === "countdown")
+  }
+
+  if (error) {
+    return <Error />;
+  }
+
+  if (gameState === "countdown") {
     return (
       <CountDown
-        countdown={countdown}
         setCountdown={setCountdown}
+        countdown={countdown}
+        gameState={gameState}
         setGameState={setGameState}
       />
     );
-  if (!quizData) return null;
+  }
+
+  if (!quizData) {
+    return null;
+  }
 
   if (gameState === "finished") {
     const LastAudio = new Audio("./Cupwin.mp3");
@@ -183,7 +190,6 @@ const MainPage = () => {
   }
 
   const currentQuestionData = quizData.questions[currentQuestion];
-
   return (
     <div className={styles.container}>
       {/* Progress Bar */}
@@ -193,26 +199,22 @@ const MainPage = () => {
           style={{ width: `${calculateProgress()}%` }}
         ></div>
       </div>
-
       {/* Celebration Confetti */}
       {showCelebration && (
-        <Confetti recycle={false} numberOfPieces={800} gravity={0.4} />
+        <>
+          <Confetti recycle={false} numberOfPieces={800} gravity={0.4} />{" "}
+        </>
       )}
-
-      {/* Quiz Header */}
       <div className={styles.header}>
         <h2>
           {quizData.title}
-          <div className={styles.topic}>Topic: {quizData.topic}</div>
+          <div className={styles.topic}> Topic: {quizData.topic}</div>
         </h2>
         <div className={`${styles.timer} ${styles.animatedTimer}`}>
           {formatTime(timeLeft)}
         </div>
       </div>
-
-      {/* Badge */}
       {badge && <div className={styles.badge}>{badge}</div>}
-
       {/* Question Container */}
       <div
         className={`${styles.questionContainer} ${
@@ -223,7 +225,6 @@ const MainPage = () => {
           Question {currentQuestion + 1} of {quizData.questions.length}
         </div>
         <div className={styles.question}>{currentQuestionData.description}</div>
-
         {/* Options */}
         <div className={styles.optionsContainer}>
           {currentQuestionData.options.map((option) => (
@@ -247,7 +248,6 @@ const MainPage = () => {
           ))}
         </div>
       </div>
-
       {/* Navigation Buttons */}
       <div className={styles.navigation}>
         <button
@@ -267,12 +267,17 @@ const MainPage = () => {
             : "Next"}
         </button>
       </div>
-
       {/* Result Overlay */}
       {gameState === "finished" && (
         <div className={styles.resultOverlay}>
-          {/* Confetti Explosions */}
-          <div className={styles.confettiLeft}>
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              zIndex: 1010,
+            }}
+          >
             <ConfettiExplosion
               width={window.innerWidth / 2}
               height={window.innerHeight}
@@ -281,7 +286,14 @@ const MainPage = () => {
               gravity={0.3}
             />
           </div>
-          <div className={styles.confettiRight}>
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 0,
+              zIndex: 1010,
+            }}
+          >
             <ConfettiExplosion
               width={window.innerWidth / 2}
               height={window.innerHeight}
