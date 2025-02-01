@@ -1,0 +1,25 @@
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  gap: 20px;
+  padding: 20px;
+  text-align: center;
+}
+
+.retryButton {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2196f3;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+}
+
+.retryButton:hover {
+  background-color: #1976d2;
+}

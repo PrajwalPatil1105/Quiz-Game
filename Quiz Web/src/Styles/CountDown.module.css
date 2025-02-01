@@ -1,0 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap");
+.countdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+}
+
+.countdownNumber {
+  font-size: 120px;
+  color: white;
+  font-family: "Bebas Neue", "Montserrat", sans-serif;
+  animation: scaleFade 1s ease-in-out infinite, colorShift 3s linear infinite;
+}
+
+@keyframes scaleFade {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .countdownNumber {
+    font-size: 80px;
+  }
+}
