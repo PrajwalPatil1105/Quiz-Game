@@ -1,6 +1,6 @@
-# Quiz Game                        Deployed Link  https://quiz-game-ruby.vercel.app/
+# Quiz Game                       
 
-Quiz Game with Gamification and Sound Effects
+Quiz Game with Gamification and Sound Effects       Deployed Link  https://quiz-game-ruby.vercel.app/
 
 🚀 Introduction
 
